@@ -1,16 +1,20 @@
 package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
-import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.perfectify.eulogio.clockio.appList.appList;
 
@@ -23,6 +27,7 @@ public class MainActivity extends Activity {
     // App names and Icons
     List<String> appNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
+    Context context = this;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +56,11 @@ public class MainActivity extends Activity {
             }
 
             // get app name if available, else get package name
+            /*
             final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
+            */
+            // TODO: pass packageName along with App name (see above)
+            final String applicationName = packageInfo.packageName;
             appNames.add(applicationName);
 
             //find app Icon if available, else get default logo
@@ -71,7 +80,34 @@ public class MainActivity extends Activity {
 
         lv.setAdapter(adapter);
 
-// the getLaunchIntentForPackage returns an intent that you can use with startActivity()
+        // Set listview listener for launching an app
+        lv.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                // selected item
+                TextView tableLayoutView = (TextView) view.findViewById(R.id.txt);
+                String appToLaunch = tableLayoutView.getText().toString();
+
+                // Create notification that ClockIO will run in background
+                // while  the desired app is launched
+                NotificationCompat.Builder mBuilder =
+                        new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("ClockIO")
+                        .setContentText(appToLaunch);
+
+                int mNotificationId = 001;
+                NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                mNotifyMgr.notify(mNotificationId, mBuilder.build());
+
+                // Launch selected app
+                Intent LaunchIntent = pm.getLaunchIntentForPackage(appToLaunch);
+                LaunchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(LaunchIntent);
+
+            }
+        });
     }
 
 
