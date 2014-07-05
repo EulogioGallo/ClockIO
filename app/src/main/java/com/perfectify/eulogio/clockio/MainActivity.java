@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.perfectify.eulogio.clockio.appList.appList;
 
@@ -89,22 +91,15 @@ public class MainActivity extends Activity {
                 TextView tableLayoutView = (TextView) view.findViewById(R.id.txt);
                 String appToLaunch = tableLayoutView.getText().toString();
 
-                // Create notification that ClockIO will run in background
-                // while  the desired app is launched
-                NotificationCompat.Builder mBuilder =
-                        new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("ClockIO")
-                        .setContentText(appToLaunch);
 
-                int mNotificationId = 001;
-                NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                mNotifyMgr.notify(mNotificationId, mBuilder.build());
+                // send app info to background service
+                Intent mServiceIntent = new Intent(context, clockService.class);
+                mServiceIntent.setData(Uri.parse(appToLaunch));
+                context.startService(mServiceIntent);
 
-                // Launch selected app
-                Intent LaunchIntent = pm.getLaunchIntentForPackage(appToLaunch);
-                LaunchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(LaunchIntent);
+                Toast.makeText(context, "ClockIO running in background", Toast.LENGTH_LONG).show();
+
+                finish();
 
             }
         });
