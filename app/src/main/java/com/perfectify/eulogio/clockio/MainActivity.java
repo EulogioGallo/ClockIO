@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
     List<String> appNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
     Context context = this;
+    public final static String APP_MESSAGE = "com.perfectify.eulogio.clockio.APP";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,15 +93,12 @@ public class MainActivity extends Activity {
                 String appToLaunch = tableLayoutView.getText().toString();
 
 
-                // send app info to background service
-                Intent mServiceIntent = new Intent(context, clockService.class);
-                mServiceIntent.setData(Uri.parse(appToLaunch));
-                context.startService(mServiceIntent);
+                //Send to interim activity to manage bound service
+                Intent interimIntent = new Intent(context, InterimActivity.class);
+                interimIntent.putExtra(APP_MESSAGE, appToLaunch);
+                startActivity(interimIntent);
 
                 Toast.makeText(context, "ClockIO running in background", Toast.LENGTH_LONG).show();
-
-                finish();
-
             }
         });
     }

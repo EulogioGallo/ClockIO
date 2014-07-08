@@ -21,12 +21,24 @@
         </activity>
 
         <service
-            android:name=".clockService"
-            android:exported="false" />
+            android:name=".clockService">
+            <intent-filter>
+                <action android:name="com.perfectify.eulogio.clockio.InterimActivity"/>
+                <action android:name=".clockService .BIND" />
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".ResultActivity"
             android:label="@string/title_activity_result" >
+        </activity>
+        <activity
+            android:name=".InterimActivity"
+            android:label="@string/title_activity_interim"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="com.perfectify.eulogio.clockio.clockService" />
+            </intent-filter>
         </activity>
     </application>
 
