@@ -20,25 +20,20 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".clockService">
+        <service android:name=".clockService" >
             <intent-filter>
-                <action android:name="com.perfectify.eulogio.clockio.InterimActivity"/>
-                <action android:name=".clockService .BIND" />
+                <action android:name="com.perfectify.eulogio.clockio.ResultActivity" />
             </intent-filter>
         </service>
 
         <activity
             android:name=".ResultActivity"
-            android:label="@string/title_activity_result" >
+            android:label="@string/title_activity_result"
+            android:launchMode="singleTop">
         </activity>
         <activity
-            android:name=".InterimActivity"
-            android:label="@string/title_activity_interim"
-            android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="com.perfectify.eulogio.clockio.clockService" />
-            </intent-filter>
+            android:name=".FinalsActivity"
+            android:label="@string/title_activity_final" >
         </activity>
     </application>
 

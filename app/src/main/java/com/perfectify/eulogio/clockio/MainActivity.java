@@ -21,7 +21,9 @@ import android.widget.Toast;
 import com.perfectify.eulogio.clockio.appList.appList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends Activity {
@@ -29,6 +31,8 @@ public class MainActivity extends Activity {
     // App names and Icons
     List<String> appNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
+    Map<String, String> apps = new HashMap<String, String>();
+
     Context context = this;
     public final static String APP_MESSAGE = "com.perfectify.eulogio.clockio.APP";
 
@@ -58,18 +62,16 @@ public class MainActivity extends Activity {
                 ai = null;
             }
 
-            // get app name if available, else get package name
-            /*
+            // get app name and package name
             final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
-            */
-            // TODO: pass packageName along with App name (see above)
-            final String applicationName = packageInfo.packageName;
+            final String packageName = packageInfo.packageName;
+            apps.put(applicationName,  packageName);
             appNames.add(applicationName);
 
             //find app Icon if available, else get default logo
             Drawable appIcon;
             try {
-                appIcon = pm.getApplicationIcon(packageInfo.packageName);
+                appIcon = pm.getApplicationIcon(packageName);
             } catch (PackageManager.NameNotFoundException nnfe) {
                 appIcon = pm.getDefaultActivityIcon();
             }
@@ -90,13 +92,13 @@ public class MainActivity extends Activity {
 
                 // selected item
                 TextView tableLayoutView = (TextView) view.findViewById(R.id.txt);
-                String appToLaunch = tableLayoutView.getText().toString();
+                String appToLaunch = apps.get(tableLayoutView.getText().toString());
 
 
                 //Send to interim activity to manage bound service
-                Intent interimIntent = new Intent(context, InterimActivity.class);
-                interimIntent.putExtra(APP_MESSAGE, appToLaunch);
-                startActivity(interimIntent);
+                Intent resultIntent = new Intent(context, ResultActivity.class);
+                resultIntent.putExtra(APP_MESSAGE, appToLaunch);
+                startActivity(resultIntent);
 
                 Toast.makeText(context, "ClockIO running in background", Toast.LENGTH_LONG).show();
             }
