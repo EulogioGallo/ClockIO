@@ -6,9 +6,10 @@ An Android app to track and send active app info
 * Lists available apps on device
 * Launches app
 * Creates notification in bar
+* Click notification to close monitored app
 * Displays elapsed time once app is exited
 
 ## What I Need to Do Still:
 * Send email with info
-* Make notification close service, which will close app
+* Keep track of time more actively
 * Spruce it up
