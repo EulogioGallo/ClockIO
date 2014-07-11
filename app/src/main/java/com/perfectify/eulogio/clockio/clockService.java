@@ -42,20 +42,10 @@ public class clockService  extends IntentService {
         return elapsedTimeBasic;
     }
 
+    // TODO: TRACK INDIVIDUAL APP TIMES
     @Override
     protected void onHandleIntent(Intent workIntent) {
         Log.d("???: SERVICE STARTED", isDestroyed + "");
-        //Get data from the incoming Intent
-        String appToLaunch = workIntent.getDataString();
-
-        Log.d("???: SERVICE DATA", appToLaunch);
-
-
-        // Launch selected app
-        launchIntent = getPackageManager().getLaunchIntentForPackage(appToLaunch);
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(launchIntent);
-
 
         // Keep track of time until notification is pressed
         // TODO: Keep track of active app time

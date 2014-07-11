@@ -8,7 +8,7 @@ public class AppInfo {
     private int id;
     private String packageName;
     private String appName;
-    private boolean isMonitored;
+    private int isMonitored;
 
     public AppInfo() {}
 
@@ -16,14 +16,14 @@ public class AppInfo {
         super();
         this.packageName = packageName;
         this.appName = appName;
-        this.isMonitored = false;
+        this.isMonitored = isMonitored;
     }
 
     // getters & setters
     @Override
     public String toString() {
         return "AppInfo [id=" + id + ", packageName=" + packageName + ", appName=" + appName
-                + ", isMonitored=" + (isMonitored ? " true]" : " false]");
+                + ", isMonitored=" + (isMonitored == 1 ? " true]" : " false]");
     }
 
     public int getId() {
@@ -38,7 +38,7 @@ public class AppInfo {
         return this.appName;
     }
 
-    public boolean getMonitored() {
+    public int getMonitored() {
         return this.isMonitored;
     }
 

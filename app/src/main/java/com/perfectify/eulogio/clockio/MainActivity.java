@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +19,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.perfectify.eulogio.clockio.Models.AppInfo;
+import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 import com.perfectify.eulogio.clockio.appList.appList;
 
 import java.util.ArrayList;
@@ -30,17 +33,20 @@ public class MainActivity extends Activity {
 
     // App names and Icons
     List<String> appNames = new ArrayList<String>();
+    List<String> appPackageNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
-    Map<String, String> apps = new HashMap<String, String>();
+    List<Integer> appMonitors = new ArrayList<Integer>();
 
     Context context = this;
     public final static String APP_MESSAGE = "com.perfectify.eulogio.clockio.APP";
+
+    // create db if not already present
+    public SQLiteHelper db = new SQLiteHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
 
         final PackageManager pm = getPackageManager();
@@ -65,8 +71,11 @@ public class MainActivity extends Activity {
             // get app name and package name
             final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
             final String packageName = packageInfo.packageName;
-            apps.put(applicationName,  packageName);
-            appNames.add(applicationName);
+
+            // add info to db
+            AppInfo addedApp = new AppInfo(packageName, applicationName, 0);
+            db.addAppInfo(addedApp);
+
 
             //find app Icon if available, else get default logo
             Drawable appIcon;
@@ -78,31 +87,24 @@ public class MainActivity extends Activity {
             appIcons.add(appIcon);
         }
 
+        // cycle through updated db for correct info
+        for( AppInfo appInfo : db.getAllAppInfo()) {
+            appNames.add(appInfo.getAppName());
+            appPackageNames.add(appInfo.getPackageName());
+            appMonitors.add(appInfo.getMonitored());
+
+            Log.d("???:CycledApps", appInfo.toString());
+        }
+
         // This is the array adapter, it takes the context of the activity as a
         // first parameter, the type of list view as a second parameter and your
         // array as a third parameter.
-        appList adapter = new appList(this, appNames, appIcons);
+        appList adapter = new appList(this, appNames, appPackageNames, appIcons, appMonitors);
 
         lv.setAdapter(adapter);
-
-        // Set listview listener for launching an app
-        lv.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-
-                // selected item
-                TextView tableLayoutView = (TextView) view.findViewById(R.id.txt);
-                String appToLaunch = apps.get(tableLayoutView.getText().toString());
+        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
 
-                //Send to interim activity to manage bound service
-                Intent resultIntent = new Intent(context, ResultActivity.class);
-                resultIntent.putExtra(APP_MESSAGE, appToLaunch);
-                startActivity(resultIntent);
-
-                Toast.makeText(context, "ClockIO running in background", Toast.LENGTH_LONG).show();
-            }
-        });
     }
 
 
@@ -124,4 +126,13 @@ public class MainActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    public void startInBackground(View view) {
+        // start service
+        Intent  resultIntent = new Intent(context, ResultActivity.class);
+        resultIntent.putExtra(APP_MESSAGE, "Tap here to exit");
+        Toast.makeText(this, "ClockIO is running in background", Toast.LENGTH_SHORT).show();
+        startActivity(resultIntent);
+    }
+
 }

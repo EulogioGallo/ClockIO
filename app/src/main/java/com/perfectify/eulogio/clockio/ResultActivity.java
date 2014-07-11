@@ -14,10 +14,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 import com.perfectify.eulogio.clockio.R;
 
 public class ResultActivity extends Activity {
     private Intent mServiceIntent;
+
+    // create db if not already present
+    public SQLiteHelper db = new SQLiteHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +29,7 @@ public class ResultActivity extends Activity {
 
         // Get app to launch from mainActivity intent
         Intent  mainActivityIntent = getIntent();
-        String appToLaunch = mainActivityIntent.getStringExtra(MainActivity.APP_MESSAGE);
+        String appToLaunch = mainActivityIntent.getStringExtra(MainActivity.APP_MESSAGE); //no longer app
 
         Log.d("???: APP_TO_LAUNCH", appToLaunch);
 
@@ -55,12 +59,11 @@ public class ResultActivity extends Activity {
 
             // send app info to background service
             mServiceIntent = new Intent(this, clockService.class);
-            mServiceIntent.setData(Uri.parse(appToLaunch));
+            //mServiceIntent.setData(Uri.parse(appToLaunch));
             startService(mServiceIntent);
 
-            Log.d("???: SERVICE_ID", mServiceIntent.getDataString());
-
-            Toast.makeText(this, "ClockIO  running in background", Toast.LENGTH_SHORT).show();
+            // start home screen
+            startActivity(new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME));
         }
     }
 
@@ -89,7 +92,6 @@ public class ResultActivity extends Activity {
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Log.d("???: NEW INTENT", mServiceIntent.getDataString());
         this.stopService(mServiceIntent);
     }
 }

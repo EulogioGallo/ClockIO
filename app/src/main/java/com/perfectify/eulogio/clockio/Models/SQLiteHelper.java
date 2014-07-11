@@ -3,7 +3,9 @@ package com.perfectify.eulogio.clockio.Models;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
@@ -16,7 +18,7 @@ import java.util.List;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     // Database info
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "ClockIODB";
 
     // Table info
@@ -44,7 +46,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         // Create AppName and AppTime tables
         String CREATE_APPNAME_TABLE = "CREATE TABLE app_info (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "packageName TEXT," +
+                "packageName TEXT UNIQUE," +
                 "appName TEXT, " +
                 "isMonitored INTEGER )";
         String CREATE_APPTIME_TABLE = "CREATE TABLE app_time (" +
@@ -52,7 +54,11 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 "elapsedTime INTEGER, " +
                 "FOREIGN KEY (id) REFERENCES app_info(id))";
 
-        db.execSQL(CREATE_APPNAME_TABLE);
+        try {
+            db.execSQL(CREATE_APPNAME_TABLE);
+        } catch(SQLiteConstraintException sqle) {
+            Log.d("???:SQLite", "Already exists: " + sqle.toString());
+        }
         db.execSQL(CREATE_APPTIME_TABLE);
     }
 
@@ -82,13 +88,17 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         values.put(KEY_MONITORED, appInfo.getMonitored());
 
         // insert
-        db.insert(TABLE_APPINFO, null, values);
+        try {
+            db.insert(TABLE_APPINFO, null, values);
+        } catch(SQLiteConstraintException sqle) {
+            Log.d("???:ConstraintException", sqle.toString());
+        }
 
         // close
         db.close();
     }
 
-    // get an app's info
+    // get an app's info based on id
     public AppInfo getAppInfo(int id) {
         // get reference to readable DB
         SQLiteDatabase db = this.getReadableDatabase();
@@ -114,6 +124,36 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         appInfo.setId(Integer.parseInt(cursor.getString(0)));
 
         Log.d("???:getAppInfo("+id+")", appInfo.toString());
+
+        return appInfo;
+    }
+
+    // get an app's info based on package name
+    public AppInfo getAppInfo(String packageName) {
+        // get reference to readable DB
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // build query
+        Cursor cursor = db.query(
+                TABLE_APPINFO, // a. table
+                APPINFO_COLUMNS, // b. column names
+                " packageName = ?", // c. selections
+                new String[] { packageName }, // d. selections args
+                null, // e. group by
+                null, // f. having
+                null, // g. order by
+                null // h. limit
+        );
+
+        // if we got results get the first one
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        //  build AppInfo object
+        AppInfo appInfo = new AppInfo(cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
+        appInfo.setId(Integer.parseInt(cursor.getString(0)));
+
+        Log.d("???:getAppInfo("+packageName+")", appInfo.toString());
 
         return appInfo;
     }
@@ -160,8 +200,8 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         int i = db.update(
                 TABLE_APPINFO, // table
                 values, // column/values
-                KEY_ID + " = ?", // selections
-                new String[] { String.valueOf(appInfo.getId()) } // selection args
+                KEY_PACKAGENAME + " = ?", // selections
+                new String[] { appInfo.getPackageName() } // selection args
         );
 
         db.close();
