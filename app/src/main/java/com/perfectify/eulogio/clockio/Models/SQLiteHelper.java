@@ -224,4 +224,28 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         db.close();
         Log.d("deleteAppInfo", appInfo.toString());
     }
+
+    // return all app packagenames that are set to monitor
+    public List<String> getMonitoredApps() {
+        List<String> monitoredApps = new LinkedList<String>();
+
+        // build query
+        String query = "SELECT packageName FROM " + TABLE_APPINFO + " WHERE isMonitored = 1";
+
+        // get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // traverse results and add to packagenames list
+        AppInfo appInfo = null;
+        if (cursor.moveToFirst()) {
+            do {
+                monitoredApps.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        Log.d("getMonitoredApps()", monitoredApps.toString());
+
+        return monitoredApps;
+    }
 }
