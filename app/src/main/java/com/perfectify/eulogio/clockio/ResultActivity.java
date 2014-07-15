@@ -91,6 +91,8 @@ public class ResultActivity extends Activity {
     // when notification is pressed
     @Override
     public void onNewIntent(Intent intent) {
+        Log.d("???: NOTIFICATION", "Notification pressed,  stopping service...");
+
         super.onNewIntent(intent);
         this.stopService(mServiceIntent);
     }

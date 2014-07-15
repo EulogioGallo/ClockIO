@@ -1,19 +1,16 @@
 package com.perfectify.eulogio.clockio;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 
@@ -24,49 +21,60 @@ import java.util.List;
  */
 
 
-public class clockService  extends IntentService implements OnTouchListener {
+public class clockService  extends IntentService/* implements OnTouchListener*/ {
     public final static String TIME_MESSAGE = "com.perfectify.eulogio.clockio.MESSAGE";
-    private Intent launchIntent;
     private long startTimeBasic;
     private long elapsedTimeBasic;
     private boolean isDestroyed = false;
     private boolean isMonitored = false;
+    List <String> appsToMonitor;
     public SQLiteHelper db = new SQLiteHelper(this);
 
     private String TAG = "???:" + this.getClass().getSimpleName();
     private WindowManager mWindowManager;
-    private LinearLayout touchLayout;
+    private View mView;
 
     public clockService() {
         super("clockService");
     }
 
+    /* used http://stackoverflow.com/questions/21267322/detecting-user-activity-in-android as a reference */
+
     @Override
-    public void onCreate() {
-        super.onCreate();
-        // create linear layout
-        touchLayout = new LinearLayout(this);
-        // set layout width to 30px and height is equal to full screen
-        LayoutParams lp = new LayoutParams(30, LayoutParams.MATCH_PARENT);
-        touchLayout.setLayoutParams(lp);
-        // set color if you want layout visible on screen
-        touchLayout.setBackgroundColor(Color.CYAN);
-        // set on touch listener
-        touchLayout.setOnTouchListener(this);
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent,  flags, startId);
 
-        // fetch window manager object
-        mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        // set layout parameter of window manager
-        WindowManager.LayoutParams mParams = new WindowManager.LayoutParams(
-                30, // width of layout 30px
-                WindowManager.LayoutParams.MATCH_PARENT, // height is equal to fullscreen
-                WindowManager.LayoutParams.TYPE_PHONE, // Type Ohone, These are non-application windows providing user interaction with the phone (in particular incoming calls).
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, // this window won't ever get key input focus
-                PixelFormat.TRANSLUCENT);
-        mParams.gravity = Gravity.LEFT | Gravity.TOP;
-        Log.d(TAG, "add View");
+        // creates window  that will detect outside touch
+        if (!isDestroyed) {
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    0, 0, 0, 0,
+                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                    PixelFormat.TRANSLUCENT
+            );
+            mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            mView = new View(this);
+            mView.setOnTouchListener(new OnTouchListener() {
 
-        mWindowManager.addView(touchLayout, mParams);
+                // onTouch method to detect only monitored app
+                @SuppressLint("DefaultLocale")
+                @Override
+                public boolean onTouch(View view, MotionEvent event) {
+                    if (isMonitored) {
+                        String monitoredApp = isForeground(appsToMonitor);
+                        Log.d(TAG,  monitoredApp);
+                    }
+
+                    return false;
+                }
+            });
+            Log.d(TAG, "add View");
+            mWindowManager.addView(mView, params);
+        }
+
+        return START_STICKY;
     }
 
     // get current running packagename
@@ -101,7 +109,7 @@ public class clockService  extends IntentService implements OnTouchListener {
     protected void onHandleIntent(Intent workIntent) {
         Log.d("???: SERVICE STARTED", isDestroyed + "");
 
-        List <String> appsToMonitor = db.getMonitoredApps();
+        appsToMonitor = db.getMonitoredApps();
 
         // Keep track of time until notification is pressed
         // TODO: Keep track of active app time
@@ -112,8 +120,6 @@ public class clockService  extends IntentService implements OnTouchListener {
         while(!isDestroyed) {
             //check if the foreground app is on our list of apps to track
             String monitoredApp = isForeground(appsToMonitor);
-            Log.d("???: MONITORED APP", monitoredApp + " is monitored");
-            Log.d("???: ISMONITORED", isMonitored + "");
             if (monitoredApp != null) {
                 try {
                     // 1 second interval for now
@@ -131,8 +137,8 @@ public class clockService  extends IntentService implements OnTouchListener {
     public void onDestroy() {
         // take care of windowmanager
         if (mWindowManager != null) {
-            if (touchLayout != null) {
-                mWindowManager.removeView(touchLayout);
+            if (mView != null) {
+                mWindowManager.removeView(mView);
             }
         }
 
@@ -145,14 +151,5 @@ public class clockService  extends IntentService implements OnTouchListener {
         isDestroyed  = true;
         Log.d("???: SERVICE DESTROYED", isDestroyed + "");
         super.onDestroy();
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        if ((event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_UP) && isMonitored) {
-            Log.d(TAG,  "Action:" + event.getAction() + "\t X:" + event.getRawX() + "\t Y:" + event.getRawY());
-        }
-
-        return true;
     }
 }
