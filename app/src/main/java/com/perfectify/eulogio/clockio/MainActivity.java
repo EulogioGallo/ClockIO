@@ -2,12 +2,14 @@ package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
 import android.app.NotificationManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -36,75 +38,106 @@ public class MainActivity extends Activity {
     List<String> appPackageNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
     List<Integer> appMonitors = new ArrayList<Integer>();
+    //Get listview item from activity_main.xml
+    ListView lv;
 
     Context context = this;
     public final static String APP_MESSAGE = "com.perfectify.eulogio.clockio.APP";
+    private ProgressDialog progressDialog;
 
     // create db if not already present
     public SQLiteHelper db = new SQLiteHelper(this);
 
+    /*************************************************************************************************************/
+    // Extend AsyncTask to do DB loading in background
+    private class LoadProgress extends AsyncTask<Void, Integer, Void> {
+        @Override
+        protected void onPreExecute() {
+            // Create progress dialog
+            progressDialog = ProgressDialog.show(MainActivity.this, "Loading...", "Please wait...", false, false);
+        }
+
+        // background code to be executed
+        @Override
+        protected Void doInBackground(Void... params) {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+            try {
+                // get current thread's token
+                synchronized (this) {
+                    final PackageManager pm = getPackageManager();
+                    //get a list of installed packages.
+                    List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+
+                    //cycle through packages for app names
+                    for (ApplicationInfo packageInfo : packages) {
+
+                        //Get application name from packagename
+                        ApplicationInfo ai;
+                        try {
+                            ai = pm.getApplicationInfo(packageInfo.packageName, 0);
+                        } catch (final PackageManager.NameNotFoundException e) {
+                            ai = null;
+                        }
+
+                        // get app name and package name
+                        final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
+                        final String packageName = packageInfo.packageName;
+
+                        // add info to db if not already present
+                        if (db.getAppInfo(packageName) == null)
+                            db.addAppInfo(new AppInfo(packageName, applicationName, 0));
+
+
+                        //find app Icon if available, else get default logo
+                        Drawable appIcon;
+                        try {
+                            appIcon = pm.getApplicationIcon(packageName);
+                        } catch (PackageManager.NameNotFoundException nnfe) {
+                            appIcon = pm.getDefaultActivityIcon();
+                        }
+                        appIcons.add(appIcon);
+                    }
+
+                    // cycle through updated db for correct info
+                    for( AppInfo appInfo : db.getAllAppInfo()) {
+                        appNames.add(appInfo.getAppName());
+                        appPackageNames.add(appInfo.getPackageName());
+                        appMonitors.add(appInfo.getMonitored());
+
+                        Log.d("???:CycledApps", appInfo.toString());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        // set view after executing background code
+        @Override
+        protected void onPostExecute(Void result) {
+            progressDialog.dismiss();
+            setContentView(R.layout.activity_main);
+            // This is the array adapter, it takes the context of the activity as a
+            // first parameter, the type of list view as a second parameter and your
+            // array as a third parameter.
+            appList adapter = new appList((MainActivity) context, appNames, appPackageNames, appIcons, appMonitors);
+
+            lv = (ListView) findViewById(R.id.appListView);
+            Log.d("???:LISTVIEW", lv.toString());
+            lv.setAdapter(adapter);
+            lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+        }
+    }
+    /***************************************************************************************************************/
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-
-        final PackageManager pm = getPackageManager();
-        //get a list of installed packages.
-        List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
-
-        //Get listview item from activity_main.xml
-        ListView lv = (ListView) findViewById(R.id.appListView);
-
-
-        //cycle through packages for app names
-        for (ApplicationInfo packageInfo : packages) {
-
-            //Get application name from packagename
-            ApplicationInfo ai;
-            try {
-                ai = pm.getApplicationInfo(packageInfo.packageName, 0);
-            } catch (final PackageManager.NameNotFoundException e) {
-                ai = null;
-            }
-
-            // get app name and package name
-            final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
-            final String packageName = packageInfo.packageName;
-
-            // add info to db
-            AppInfo addedApp = new AppInfo(packageName, applicationName, 0);
-            db.addAppInfo(addedApp);
-
-
-            //find app Icon if available, else get default logo
-            Drawable appIcon;
-            try {
-                appIcon = pm.getApplicationIcon(packageName);
-            } catch (PackageManager.NameNotFoundException nnfe) {
-                appIcon = pm.getDefaultActivityIcon();
-            }
-            appIcons.add(appIcon);
-        }
-
-        // cycle through updated db for correct info
-        for( AppInfo appInfo : db.getAllAppInfo()) {
-            appNames.add(appInfo.getAppName());
-            appPackageNames.add(appInfo.getPackageName());
-            appMonitors.add(appInfo.getMonitored());
-
-            Log.d("???:CycledApps", appInfo.toString());
-        }
-
-        // This is the array adapter, it takes the context of the activity as a
-        // first parameter, the type of list view as a second parameter and your
-        // array as a third parameter.
-        appList adapter = new appList(this, appNames, appPackageNames, appIcons, appMonitors);
-
-        lv.setAdapter(adapter);
-        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
-
+        new LoadProgress().execute();
     }
 
 

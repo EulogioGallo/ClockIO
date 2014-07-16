@@ -21,7 +21,7 @@ import java.util.List;
  */
 
 
-public class clockService  extends IntentService/* implements OnTouchListener*/ {
+public class clockService  extends IntentService {
     public final static String TIME_MESSAGE = "com.perfectify.eulogio.clockio.MESSAGE";
     private long startTimeBasic;
     private long elapsedTimeBasic;

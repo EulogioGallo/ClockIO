@@ -146,16 +146,19 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         );
 
         // if we got results get the first one
-        if (cursor != null)
+        if (cursor != null) {
             cursor.moveToFirst();
 
-        //  build AppInfo object
-        AppInfo appInfo = new AppInfo(cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
-        appInfo.setId(Integer.parseInt(cursor.getString(0)));
+            //  build AppInfo object
+            AppInfo appInfo = new AppInfo(cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
+            appInfo.setId(Integer.parseInt(cursor.getString(0)));
 
-        Log.d("???:getAppInfo("+packageName+")", appInfo.toString());
+            Log.d("???:getAppInfo(" + packageName + ")", appInfo.toString());
 
-        return appInfo;
+            return appInfo;
+        }
+
+        return null;
     }
 
     // get  app info for all available apps
