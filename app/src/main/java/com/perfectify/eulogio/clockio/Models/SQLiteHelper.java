@@ -18,8 +18,8 @@ import java.util.List;
 public class SQLiteHelper extends SQLiteOpenHelper {
 
     // Database info
-    private static final int DATABASE_VERSION = 2;
-    private static final String DATABASE_NAME = "ClockIODB";
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "ClockIODB1";
 
     // Table info
     // table names
@@ -35,7 +35,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     private static final String KEY_TIME = "elapsedTime";
 
     private static final String[] APPINFO_COLUMNS = {KEY_ID,KEY_PACKAGENAME,KEY_APPNAME,KEY_MONITORED};
-    private static final String[] APPTIME_COLUMNS = {KEY_ID,KEY_TIME};
+    private static final String[] APPTIME_COLUMNS = {KEY_ID,KEY_PACKAGENAME,KEY_TIME};
 
     public SQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -51,15 +51,16 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 "isMonitored INTEGER )";
         String CREATE_APPTIME_TABLE = "CREATE TABLE app_time (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "packageName TEXT UNIQUE," +
                 "elapsedTime INTEGER, " +
                 "FOREIGN KEY (id) REFERENCES app_info(id))";
 
         try {
             db.execSQL(CREATE_APPNAME_TABLE);
+            db.execSQL(CREATE_APPTIME_TABLE);
         } catch(SQLiteConstraintException sqle) {
             Log.d("???:SQLite", "Already exists: " + sqle.toString());
         }
-        db.execSQL(CREATE_APPTIME_TABLE);
     }
 
     @Override
@@ -72,8 +73,9 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         this.onCreate(db);
     }
 
-    // CRUD Operations
+    /************************ CRUD Operations **************************************/
 
+    /*********************** AppInfo ***********************************************/
     // add an app
     public void addAppInfo(AppInfo appInfo) {
         Log.d("???:addAppInfo", appInfo.toString());
@@ -146,7 +148,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         );
 
         // if we got results get the first one
-        if (cursor != null) {
+        if (cursor.getCount() != 0) {
             cursor.moveToFirst();
 
             //  build AppInfo object
@@ -251,4 +253,114 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         return monitoredApps;
     }
+
+    /*************************** END OF AppInfo *************************************************/
+
+    // add an app's time
+    public void addAppTime(AppTime appTime){
+        //for logging
+        Log.d("addAppTime", appTime.toString());
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. create ContentValues to add key "column"/value
+        ContentValues values = new ContentValues();
+        values.put(KEY_PACKAGENAME, appTime.getPackageName()); // get packagename
+        values.put(KEY_TIME, appTime.getElapsedTime()); // get time
+
+        // 3. insert
+        db.insert(TABLE_APPTIME, // table
+                null, //nullColumnHack
+                values); // key/value -> keys = column names/ values = column values
+
+        // 4. close
+        db.close();
+    }
+
+
+    // get an app's time based on id
+    public AppTime getAppTime(int id) {
+        // get reference to readable DB
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // build query
+        Cursor cursor = db.query(
+                TABLE_APPTIME, // a. table
+                APPTIME_COLUMNS, // b. column names
+                " id = ?", // c. selections
+                new String[] { String.valueOf(id) }, // d. selections args
+                null, // e. group by
+                null, // f. having
+                null, // g. order by
+                null // h. limit
+        );
+
+        // if we got results get the first one
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        //  build AppTime object
+        AppTime appTime = new AppTime(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getLong(2));
+        Log.d("???:getAppTime("+id+")", appTime.toString() + "");
+
+        return appTime;
+    }
+
+    // get an app's time based on packagename
+    public AppTime getAppTime(String packageName) {
+        // get reference to readable DB
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // build query
+        Cursor cursor = db.query(
+                TABLE_APPTIME, // a. table
+                APPTIME_COLUMNS, // b. column names
+                " packageName = ?", // c. selections
+                new String[] { packageName }, // d. selections args
+                null, // e. group by
+                null, // f. having
+                null, // g. order by
+                null // h. limit
+        );
+
+        // if we got results get the first one
+        if (cursor.getCount() != 0) {
+            cursor.moveToFirst();
+
+            //  build AppTime object
+            AppTime appTime = new AppTime(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getLong(2));
+            Log.d("???:getAppTime(" + packageName + ")", appTime.toString() + "");
+
+            return appTime;
+        }
+
+        return null;
+    }
+
+    // update apptime
+    public int updateAppTime(AppTime appTime) {
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. create ContentValues to add key "column"/value
+        ContentValues values = new ContentValues();
+        values.put(KEY_TIME, appTime.getElapsedTime()); // get time
+
+        // 3. updating row
+        int i = db.update(TABLE_APPTIME, //table
+                values, // column/value
+                KEY_PACKAGENAME+" = ?", // selections
+                new String[] { String.valueOf(appTime.getPackageName()) }); //selection args
+
+        // 4. close
+        db.close();
+
+        return i;
+
+    }
+    /*************************** AppTime ******************************************************/
+
+
+    /************************** END OF AppTime ***************************************************/
 }

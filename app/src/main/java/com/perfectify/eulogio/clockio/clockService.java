@@ -12,9 +12,14 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 
+import com.perfectify.eulogio.clockio.Models.AppInfo;
+import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Eulogio on 7/5/2014.
@@ -23,11 +28,10 @@ import java.util.List;
 
 public class clockService  extends IntentService {
     public final static String TIME_MESSAGE = "com.perfectify.eulogio.clockio.MESSAGE";
-    private long startTimeBasic;
-    private long elapsedTimeBasic;
+    private long tempTime = 0;
     private boolean isDestroyed = false;
     private boolean isMonitored = false;
-    List <String> appsToMonitor;
+    Map<String, Long> appsToMonitor = new HashMap<String, Long>();
     public SQLiteHelper db = new SQLiteHelper(this);
 
     private String TAG = "???:" + this.getClass().getSimpleName();
@@ -62,9 +66,31 @@ public class clockService  extends IntentService {
                 @SuppressLint("DefaultLocale")
                 @Override
                 public boolean onTouch(View view, MotionEvent event) {
+                    // getting the monitored app also resets the isMonitored flag
+                    String monitoredApp = isForeground(appsToMonitor.keySet());
+
                     if (isMonitored) {
-                        String monitoredApp = isForeground(appsToMonitor);
-                        Log.d(TAG,  monitoredApp);
+                        appsToMonitor.put(monitoredApp, appsToMonitor.get(monitoredApp) + 1);
+
+                        // TODO: give 15sec grace period
+                        // wait a sec before it goes again
+                        try {
+                            long start = System.currentTimeMillis();
+                            Thread.sleep(1000);
+                            long end = System.currentTimeMillis() - start;
+
+                            // update time in db
+                            addTime(monitoredApp, end);
+                            Log.d("???:ACTIVE", end + "");
+
+                            // reset time to be tracked
+                            tempTime = 0;
+
+                        } catch(InterruptedException ie) {
+                            ie.printStackTrace();
+                        }
+
+                        Log.d("???:OnTouch",  monitoredApp);
                     }
 
                     return false;
@@ -88,7 +114,7 @@ public class clockService  extends IntentService {
     }
 
     //checks to see if app specified is running in foreground
-    public String isForeground(List <String> appsToMonitor) {
+    public String isForeground(Set<String> appsToMonitor) {
         String foregroundApp = getForeground();
         for (String currentApp : appsToMonitor) {
             if (foregroundApp.equals(currentApp)) {
@@ -100,35 +126,29 @@ public class clockService  extends IntentService {
             return null;
     }
 
-    public long getTimeElapsedBasic() {
-        return elapsedTimeBasic;
+    // adds time to AppTime table
+    public void addTime(String packageName, long time) {
+        Log.d("???:addTime", packageName);
+        AppTime appToUpdate = db.getAppTime(packageName);
+        appToUpdate.setElapsedTime(appToUpdate.getElapsedTime() + time);
+        db.updateAppTime(appToUpdate);
     }
 
-    // TODO: TRACK INDIVIDUAL APP TIMES
     @Override
     protected void onHandleIntent(Intent workIntent) {
         Log.d("???: SERVICE STARTED", isDestroyed + "");
 
-        appsToMonitor = db.getMonitoredApps();
-
-        // Keep track of time until notification is pressed
-        // TODO: Keep track of active app time
-        startTimeBasic = System.nanoTime();
-        elapsedTimeBasic = System.nanoTime() - startTimeBasic;
-        Log.d("???: TIME ELAPSED", elapsedTimeBasic + "");
+        // initialize time for monitored apps
+        for (String appToMonitor : db.getMonitoredApps()) {
+            appsToMonitor.put(appToMonitor, new Long(0));
+        }
 
         while(!isDestroyed) {
-            //check if the foreground app is on our list of apps to track
-            String monitoredApp = isForeground(appsToMonitor);
-            if (monitoredApp != null) {
-                try {
-                    // 1 second interval for now
-                    Thread.sleep(1000);
-                    elapsedTimeBasic = System.nanoTime() - startTimeBasic;
-                    Log.d("???:  TIME ELAPSED", elapsedTimeBasic + "");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            // check for inactivity
+            if (tempTime >= 15) {
+                addTime(getForeground(), tempTime);
+                Log.d("???:INACTIVE", tempTime + "");
+                tempTime = 0;
             }
         }
     }
@@ -146,7 +166,8 @@ public class clockService  extends IntentService {
         Intent finalIntent = new Intent(this, FinalsActivity.class);
         finalIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         finalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        finalIntent.putExtra(TIME_MESSAGE, elapsedTimeBasic);
+        // TODO: Change "Chang"
+        finalIntent.putExtra(TIME_MESSAGE, "Chang");
         startActivity(finalIntent);
         isDestroyed  = true;
         Log.d("???: SERVICE DESTROYED", isDestroyed + "");

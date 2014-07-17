@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.perfectify.eulogio.clockio.Models.AppInfo;
+import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 import com.perfectify.eulogio.clockio.appList.appList;
 
@@ -87,6 +88,10 @@ public class MainActivity extends Activity {
                         // add info to db if not already present
                         if (db.getAppInfo(packageName) == null)
                             db.addAppInfo(new AppInfo(packageName, applicationName, 0));
+
+                        // add time to db if not already present
+                        if (db.getAppTime(packageName) == null)
+                            db.addAppTime(new AppTime(packageName));
 
 
                         //find app Icon if available, else get default logo
