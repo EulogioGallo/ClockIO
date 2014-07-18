@@ -2,34 +2,53 @@ package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 
+import com.perfectify.eulogio.clockio.Models.AppTime;
+import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
+import com.perfectify.eulogio.clockio.appList.appList;
+import com.perfectify.eulogio.clockio.appTimeList.appTimeList;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class FinalsActivity extends Activity {
+    private ListView lv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_finals);
+
+        SQLiteHelper db = new SQLiteHelper(this);
 
         // Get intent from service
         Intent resultIntent = getIntent();
-        long timeElapsedBasic = resultIntent.getLongExtra(clockService.TIME_MESSAGE, 1000001);
-        String time = String.format("%d min, %d sec",
-                TimeUnit.NANOSECONDS.toMinutes(timeElapsedBasic),
-                TimeUnit.NANOSECONDS.toSeconds(timeElapsedBasic) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.NANOSECONDS.toMinutes(timeElapsedBasic))
-        );
 
-        TextView resultTime = new TextView(this);
-        resultTime.setTextSize(12);
-        resultTime.setText("Time: " + time);
+        // Get the appTimeList reference
+        ListView appTimeListView = (ListView) findViewById(R.id.appTimeListView);
 
-        setContentView(resultTime);
+        List<String> appNames = new ArrayList<String>();
+        List<Long> appTimes = new ArrayList<Long>();
+
+        for(AppTime appTime : db.getAllAppTime()) {
+            appNames.add(appTime.getPackageName());
+            appTimes.add(appTime.getElapsedTime());
+        }
+
+        appTimeList adapter = new appTimeList(this, appNames, appTimes);
+
+        lv = (ListView) findViewById(R.id.appTimeListView);
+        lv.setAdapter(adapter);
     }
 
 

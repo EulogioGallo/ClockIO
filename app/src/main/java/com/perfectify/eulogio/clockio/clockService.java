@@ -16,6 +16,7 @@ import com.perfectify.eulogio.clockio.Models.AppInfo;
 import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +30,20 @@ import java.util.Set;
 public class clockService  extends IntentService {
     public final static String TIME_MESSAGE = "com.perfectify.eulogio.clockio.MESSAGE";
     private long tempTime = 0;
+
+    // is service destroyed
     private boolean isDestroyed = false;
+    // is the current app monitored
     private boolean isMonitored = false;
-    Map<String, Long> appsToMonitor = new HashMap<String, Long>();
+    // has a monitored app been touched
+    private boolean isTouched = false;
+
+    List<String> appsToMonitor = new ArrayList<String>();
     public SQLiteHelper db = new SQLiteHelper(this);
 
     private String TAG = "???:" + this.getClass().getSimpleName();
+
+    // components to detect global touch
     private WindowManager mWindowManager;
     private View mView;
 
@@ -67,13 +76,12 @@ public class clockService  extends IntentService {
                 @Override
                 public boolean onTouch(View view, MotionEvent event) {
                     // getting the monitored app also resets the isMonitored flag
-                    String monitoredApp = isForeground(appsToMonitor.keySet());
+                    String monitoredApp = isForeground(appsToMonitor);
 
                     if (isMonitored) {
-                        appsToMonitor.put(monitoredApp, appsToMonitor.get(monitoredApp) + 1);
+                        isTouched = true;
 
-                        // TODO: give 15sec grace period
-                        // wait a sec before it goes again
+                        // add time
                         try {
                             long start = System.currentTimeMillis();
                             Thread.sleep(1000);
@@ -89,8 +97,6 @@ public class clockService  extends IntentService {
                         } catch(InterruptedException ie) {
                             ie.printStackTrace();
                         }
-
-                        Log.d("???:OnTouch",  monitoredApp);
                     }
 
                     return false;
@@ -113,8 +119,18 @@ public class clockService  extends IntentService {
         return componentInfo.getPackageName();
     }
 
+    // get most recent app on stack (not foreground)
+    public String getAppOnStack() {
+        ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        List< ActivityManager.RunningTaskInfo > runningTaskInfo = am.getRunningTasks(2);
+
+        ComponentName componentInfo = runningTaskInfo.get(1).topActivity;
+
+        return componentInfo.getPackageName();
+    }
+
     //checks to see if app specified is running in foreground
-    public String isForeground(Set<String> appsToMonitor) {
+    public String isForeground(List<String> appsToMonitor) {
         String foregroundApp = getForeground();
         for (String currentApp : appsToMonitor) {
             if (foregroundApp.equals(currentApp)) {
@@ -128,7 +144,7 @@ public class clockService  extends IntentService {
 
     // adds time to AppTime table
     public void addTime(String packageName, long time) {
-        Log.d("???:addTime", packageName);
+        Log.d("???:addTime", packageName + " - " + time);
         AppTime appToUpdate = db.getAppTime(packageName);
         appToUpdate.setElapsedTime(appToUpdate.getElapsedTime() + time);
         db.updateAppTime(appToUpdate);
@@ -140,16 +156,43 @@ public class clockService  extends IntentService {
 
         // initialize time for monitored apps
         for (String appToMonitor : db.getMonitoredApps()) {
-            appsToMonitor.put(appToMonitor, new Long(0));
+            appsToMonitor.add(appToMonitor);
         }
 
         while(!isDestroyed) {
-            // check for inactivity
-            if (tempTime >= 15) {
-                addTime(getForeground(), tempTime);
-                Log.d("???:INACTIVE", tempTime + "");
+            if (isForeground(appsToMonitor) != null) {
+                // if touched recently, keep tracking time
+                if (isTouched) {
+                    try {
+                        long start = System.currentTimeMillis();
+                        Thread.sleep(1000);
+                        long end = System.currentTimeMillis() - start;
+                        tempTime += end;
+                        Log.d("???:TEMPTIME", tempTime + "");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // check for 15sec of inactivity
+                if (tempTime >= 15000) {
+                    addTime(getForeground(), tempTime);
+                    Log.d("???:INACTIVE", tempTime + "");
+                    tempTime = 0;
+                    isTouched = false;
+                }
+            // if we moved to another app that isn't monitored
+            // add the time we had to the appropriate app
+            } else if (tempTime > 0) {
+                addTime(getAppOnStack(), tempTime);
                 tempTime = 0;
             }
+        }
+
+        // make sure time is added once service is destroyed
+        if (tempTime > 0) {
+            addTime(getAppOnStack(), tempTime);
+            tempTime = 0;
         }
     }
 
@@ -166,8 +209,6 @@ public class clockService  extends IntentService {
         Intent finalIntent = new Intent(this, FinalsActivity.class);
         finalIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
         finalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        // TODO: Change "Chang"
-        finalIntent.putExtra(TIME_MESSAGE, "Chang");
         startActivity(finalIntent);
         isDestroyed  = true;
         Log.d("???: SERVICE DESTROYED", isDestroyed + "");

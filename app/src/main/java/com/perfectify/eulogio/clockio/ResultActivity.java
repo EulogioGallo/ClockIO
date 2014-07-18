@@ -29,12 +29,12 @@ public class ResultActivity extends Activity {
 
         // Get app to launch from mainActivity intent
         Intent  mainActivityIntent = getIntent();
-        String appToLaunch = mainActivityIntent.getStringExtra(MainActivity.APP_MESSAGE); //no longer app
+        String appMsg = mainActivityIntent.getStringExtra(MainActivity.APP_MESSAGE); //no longer app
 
-        Log.d("???: APP_TO_LAUNCH", appToLaunch);
+        Log.d("???: APP_TO_LAUNCH", appMsg);
 
         // this is null when ResultActivity started from notification
-        if (appToLaunch != null) {
+        if (appMsg != null) {
             //  intent for returning to this activity when notification is pressed
             Intent thisIntent = new Intent(this, this.getClass());
             PendingIntent pendingThisIntent = PendingIntent.getActivity(
@@ -48,14 +48,14 @@ public class ResultActivity extends Activity {
                             .setContentIntent(pendingThisIntent)
                             .setSmallIcon(R.drawable.ic_launcher)
                             .setContentTitle("ClockIO")
-                            .setContentText(appToLaunch)
+                            .setContentText(appMsg)
                             .setAutoCancel(true);
 
             int mNotificationId = 001;
             NotificationManager mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             mNotifyMgr.notify(mNotificationId, mBuilder.build());
 
-            Log.d("???: NOTIFICATION", "Notification Created: " + appToLaunch);
+            Log.d("???: NOTIFICATION", "Notification Created: " + appMsg);
 
             // send app info to background service
             mServiceIntent = new Intent(this, clockService.class);

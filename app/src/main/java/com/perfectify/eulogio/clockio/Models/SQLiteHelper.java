@@ -338,6 +338,32 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         return null;
     }
 
+    // get  app time for all monitored apps
+    public List<AppTime> getAllAppTime() {
+        List<AppTime> appTimes = new LinkedList<AppTime>();
+
+        // build query
+        String query = "SELECT * FROM " + TABLE_APPTIME + " WHERE " + KEY_TIME + " > 0";
+
+        // get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+
+        // traverse results and add to AppInfo list
+        AppTime appTime = null;
+        if (cursor.moveToFirst()) {
+            do {
+                appTime = new AppTime(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getLong(2));
+
+                appTimes.add(appTime);
+            } while (cursor.moveToNext());
+        }
+
+        Log.d("getAllAppInfo()", appTimes.toString());
+
+        return appTimes;
+    }
+
     // update apptime
     public int updateAppTime(AppTime appTime) {
         // 1. get reference to writable DB
