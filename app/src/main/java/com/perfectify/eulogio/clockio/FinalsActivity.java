@@ -31,12 +31,6 @@ public class FinalsActivity extends Activity {
 
         SQLiteHelper db = new SQLiteHelper(this);
 
-        // Get intent from service
-        Intent resultIntent = getIntent();
-
-        // Get the appTimeList reference
-        ListView appTimeListView = (ListView) findViewById(R.id.appTimeListView);
-
         List<String> appNames = new ArrayList<String>();
         List<Long> appTimes = new ArrayList<Long>();
 

@@ -1,19 +1,13 @@
 package com.perfectify.eulogio.clockio.appTimeList;
 
-import android.app.Activity;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.perfectify.eulogio.clockio.FinalsActivity;
-import com.perfectify.eulogio.clockio.MainActivity;
-import com.perfectify.eulogio.clockio.Models.AppInfo;
 import com.perfectify.eulogio.clockio.R;
 
 import java.util.List;
