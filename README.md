@@ -10,12 +10,12 @@ An Android app to track and send active app info
 * Creates notification in bar
 * Click notification to finish monitoring
 * Displays elapsed time once app is exited
+* Detects when screenshot is taken
 
 ## What I Need to Do Still:
 * More DB optimization
 * Spruce it up
-* Test on actual device
+* Restrict screenshot detection to when in-app only
 
 ## What I Can Investigate More
-* Screenshots?
 * Send crashdump?

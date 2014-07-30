@@ -6,6 +6,7 @@ import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,6 +17,7 @@ import com.perfectify.eulogio.clockio.Models.AppInfo;
 import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,9 @@ public class clockService  extends IntentService {
     // components to detect global touch
     private WindowManager mWindowManager;
     private View mView;
+
+    // fileobserver  for screenshots
+    private ScreenshotObserver  screenshotObserver;
 
     public clockService() {
         super("clockService");
@@ -104,6 +109,15 @@ public class clockService  extends IntentService {
             });
             Log.d(TAG, "add View");
             mWindowManager.addView(mView, params);
+
+            // see if screenshot directory is present
+            File screenshots = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/Screenshots/");
+
+            // monitor screenshot directory
+            if (screenshots.exists()) {
+                screenshotObserver = new ScreenshotObserver(screenshots.getAbsolutePath());
+                screenshotObserver.startWatching();
+            }
         }
 
         return START_STICKY;
@@ -203,6 +217,11 @@ public class clockService  extends IntentService {
             if (mView != null) {
                 mWindowManager.removeView(mView);
             }
+        }
+
+        // stop watching screenshot directory
+        if (screenshotObserver != null) {
+            screenshotObserver.stopWatching();
         }
 
         // When service is destroyed, call final activity
