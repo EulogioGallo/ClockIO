@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AndroidBootstrap/AndroidBootstrap.iml" filepath="$PROJECT_DIR$/AndroidBootstrap/AndroidBootstrap.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AndroidBootstrap/AndroidBootstrap.iml" filepath="$PROJECT_DIR$/AndroidBootstrap/AndroidBootstrap.iml" />
       <module fileurl="file://$PROJECT_DIR$/ClockIO.iml" filepath="$PROJECT_DIR$/ClockIO.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/libraries/AndroidBootstrap/libraries-AndroidBootstrap.iml" filepath="$PROJECT_DIR$/libraries/AndroidBootstrap/libraries-AndroidBootstrap.iml" />

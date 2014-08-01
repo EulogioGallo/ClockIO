@@ -115,8 +115,7 @@ public class clockService  extends IntentService {
 
             // monitor screenshot directory
             if (screenshots.exists()) {
-                screenshotObserver = new ScreenshotObserver(screenshots.getAbsolutePath());
-                screenshotObserver.startWatching();
+                screenshotObserver = new ScreenshotObserver(this, screenshots.getAbsolutePath());
             }
         }
 
@@ -173,8 +172,19 @@ public class clockService  extends IntentService {
             appsToMonitor.add(appToMonitor);
         }
 
+        // set appsToMonitor in ScreenshotObserver
+        if (screenshotObserver != null) {
+            screenshotObserver.setAppsToMonitor(appsToMonitor);
+        }
+
         while(!isDestroyed) {
             if (isForeground(appsToMonitor) != null) {
+
+                // monitor screenshot directory if monitored app in foreground
+                if (screenshotObserver != null) {
+                    screenshotObserver.startWatching();
+                }
+
                 // if touched recently, keep tracking time
                 if (isTouched) {
                     try {
@@ -200,6 +210,11 @@ public class clockService  extends IntentService {
             } else if (tempTime > 0) {
                 addTime(getAppOnStack(), tempTime);
                 tempTime = 0;
+            }
+
+            // stop monitoring screenshots if no monitored app is in foreground
+            if (screenshotObserver != null) {
+                screenshotObserver.stopWatching();
             }
         }
 

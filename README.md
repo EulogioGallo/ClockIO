@@ -15,6 +15,9 @@ An Android app to track and send active app info
 ## What I Need to Do Still:
 * More DB optimization
 * Spruce it up
+* Show app list in alphabetical order
+* Add login functionality
+* Make "ResultActivity" hidden
 * Restrict screenshot detection to when in-app only
 
 ## What I Can Investigate More
