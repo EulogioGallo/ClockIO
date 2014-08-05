@@ -1,25 +1,17 @@
 package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
-
 
 import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
-import com.perfectify.eulogio.clockio.appList.appList;
 import com.perfectify.eulogio.clockio.appTimeList.appTimeList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class FinalsActivity extends Activity {
     private ListView lv;
@@ -35,7 +27,7 @@ public class FinalsActivity extends Activity {
         List<Long> appTimes = new ArrayList<Long>();
 
         for(AppTime appTime : db.getAllAppTime()) {
-            appNames.add(appTime.getPackageName());
+            appNames.add(db.getAppInfo(appTime.getPackageName()).getAppName());
             appTimes.add(appTime.getElapsedTime());
         }
 

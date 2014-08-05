@@ -38,6 +38,8 @@ public class AppTime {
 
     public void setElapsedTime(long elapsedTime) { this.elapsedTime = elapsedTime; }
 
+    public void zero() { setElapsedTime(0); }
+
     @Override
     public String toString() {
         return "AppTime [id=" + id + ", packageName=" + packageName + ", elapsedTime=" + elapsedTime + "]";

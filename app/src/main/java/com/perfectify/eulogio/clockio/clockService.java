@@ -107,7 +107,7 @@ public class clockService  extends IntentService {
                     return false;
                 }
             });
-            Log.d(TAG, "add View");
+
             mWindowManager.addView(mView, params);
 
             // see if screenshot directory is present

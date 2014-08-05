@@ -37,7 +37,7 @@ public class appTimeList extends ArrayAdapter<String> {
         txtPackageName.setText(packageName.get(position));
 
         // format time
-        String timeString = String.format("%d min, %d sec",
+        String timeString = String.format("  %d min, %d sec",
                 TimeUnit.MILLISECONDS.toMinutes(time.get(position)),
                 TimeUnit.MILLISECONDS.toSeconds(time.get(position)) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(time.get(position)))

@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class MainActivity extends Activity {
@@ -38,7 +40,12 @@ public class MainActivity extends Activity {
     List<String> appNames = new ArrayList<String>();
     List<String> appPackageNames = new ArrayList<String>();
     List<Drawable> appIcons = new ArrayList<Drawable>();
-    List<Integer> appMonitors = new ArrayList<Integer>();
+    List<Integer> appCheck = new ArrayList<Integer>();
+
+    // Map to sort these apps before listing them
+    Map<String, Integer> appMonitors = new TreeMap<String, Integer>();
+    Map<String, Pair<String, Drawable>> appRows = new TreeMap<String, Pair<String, Drawable>>();
+
     //Get listview item from activity_main.xml
     ListView lv;
 
@@ -73,6 +80,11 @@ public class MainActivity extends Activity {
                     //cycle through packages for app names
                     for (ApplicationInfo packageInfo : packages) {
 
+                        // skip if system package
+                        if ((packageInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+                            continue;
+                        }
+
                         //Get application name from packagename
                         ApplicationInfo ai;
                         try {
@@ -85,13 +97,22 @@ public class MainActivity extends Activity {
                         final String applicationName = (String) (ai != null ? pm.getApplicationLabel(ai) : packageInfo.packageName);
                         final String packageName = packageInfo.packageName;
 
+                        AppInfo appInfo = db.getAppInfo(packageName);
+                        AppTime appTime = db.getAppTime(packageName);
+
                         // add info to db if not already present
-                        if (db.getAppInfo(packageName) == null)
-                            db.addAppInfo(new AppInfo(packageName, applicationName, 0));
+                        if (appInfo == null) {
+                            appInfo = new AppInfo(packageName, applicationName, 0);
+                            db.addAppInfo(appInfo);
+                        }
 
                         // add time to db if not already present
-                        if (db.getAppTime(packageName) == null)
-                            db.addAppTime(new AppTime(packageName));
+                        if (appTime == null) {
+                            appTime = new AppTime(packageName);
+                            db.addAppTime(appTime);
+                        } else if (appTime.getElapsedTime() > 0) {
+                            appTime.zero();
+                        }
 
 
                         //find app Icon if available, else get default logo
@@ -101,17 +122,20 @@ public class MainActivity extends Activity {
                         } catch (PackageManager.NameNotFoundException nnfe) {
                             appIcon = pm.getDefaultActivityIcon();
                         }
-                        appIcons.add(appIcon);
+
+                        // add to sorted map
+                        appRows.put(applicationName, Pair.create(packageName, appIcon));
+                        appMonitors.put(applicationName, appInfo.getMonitored());
                     }
 
-                    // cycle through updated db for correct info
-                    for( AppInfo appInfo : db.getAllAppInfo()) {
-                        appNames.add(appInfo.getAppName());
-                        appPackageNames.add(appInfo.getPackageName());
-                        appMonitors.add(appInfo.getMonitored());
-
-                        Log.d("???:CycledApps", appInfo.toString());
+                    // take map and make lists to add to list adapter
+                    for (Map.Entry<String, Pair<String, Drawable>> entry : appRows.entrySet()) {
+                        appNames.add(entry.getKey());
+                        appPackageNames.add(entry.getValue().first);
+                        appIcons.add(entry.getValue().second);
+                        appCheck.add(appMonitors.get(entry.getKey()));
                     }
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -128,10 +152,9 @@ public class MainActivity extends Activity {
             // This is the array adapter, it takes the context of the activity as a
             // first parameter, the type of list view as a second parameter and your
             // array as a third parameter.
-            appList adapter = new appList((MainActivity) context, appNames, appPackageNames, appIcons, appMonitors);
+            appList adapter = new appList((MainActivity) context, appNames, appPackageNames, appIcons, appCheck);
 
             lv = (ListView) findViewById(R.id.appListView);
-            Log.d("???:LISTVIEW", lv.toString());
             lv.setAdapter(adapter);
             lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 

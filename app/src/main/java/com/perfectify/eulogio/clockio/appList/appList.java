@@ -21,6 +21,7 @@ import java.util.List;
  * Custom View that is a list w/icons
  */
 public class appList extends ArrayAdapter<String> {
+
     private final MainActivity context;
     private final List<String> name;
     private final List<String> packageName;
