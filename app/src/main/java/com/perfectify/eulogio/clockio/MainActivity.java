@@ -1,34 +1,32 @@
 package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.perfectify.eulogio.clockio.Models.AppInfo;
 import com.perfectify.eulogio.clockio.Models.AppTime;
 import com.perfectify.eulogio.clockio.Models.SQLiteHelper;
 import com.perfectify.eulogio.clockio.appList.appList;
+import com.perfectify.eulogio.clockio.signinPreferences.SigninPreferenceActivity;
+import com.perfectify.eulogio.clockio.signinPreferences.SigninPreferenceFragment;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -183,17 +181,32 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Intent signinIntent = new Intent(getApplicationContext(), SigninPreferenceActivity.class);
+            startActivityForResult(signinIntent, 0);
+
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void startInBackground(View view) {
-        // start service
-        Intent  resultIntent = new Intent(context, ResultActivity.class);
-        resultIntent.putExtra(APP_MESSAGE, "Tap here to exit");
-        Toast.makeText(this, "ClockIO is running in background", Toast.LENGTH_SHORT).show();
-        startActivity(resultIntent);
+        // only start service if signed in
+        String signInPref = PreferenceManager.getDefaultSharedPreferences(this).getString("signin","");
+        Log.d("???:signInPref", signInPref);
+
+        if (!signInPref.isEmpty()) {
+
+            // start service
+            Intent resultIntent = new Intent(context, ResultActivity.class);
+            resultIntent.putExtra(APP_MESSAGE, "Tap here to exit");
+            Toast.makeText(this, "ClockIO is running in background", Toast.LENGTH_SHORT).show();
+            startActivity(resultIntent);
+
+        } else {
+
+            Toast.makeText(this, "Login First!", Toast.LENGTH_SHORT).show();
+
+        }
     }
 
 }

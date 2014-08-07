@@ -36,6 +36,10 @@
             android:name=".FinalsActivity"
             android:label="@string/title_activity_final" >
         </activity>
+        <activity
+            android:name=".signinPreferences.SigninPreferenceActivity"
+            android:label="Settings" >
+        </activity>
     </application>
 
 </manifest>

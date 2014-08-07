@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.os.FileObserver;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class ScreenshotObserver extends FileObserver {
         if ((CREATE & event) != 0) {
             Log.d("???: SCREENSHOT!!!", getForeground());
             Log.d("???: SCREENSHOT!!!", lastModified(absolutePath));
+            Toast.makeText(context, "Screenshot taken within ClockIO!", Toast.LENGTH_SHORT).show();
         }
     }
 }

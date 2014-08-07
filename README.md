@@ -11,11 +11,12 @@ An Android app to track and send active app info
 * Click notification to finish monitoring
 * Displays elapsed time once app is exited
 * Detects when screenshot is taken
+* Created settings menu for logging in, etc.
 
 ## What I Need to Do Still:
 * More DB optimization
 * Spruce it up
-* Add login functionality
+* Hook into API
 * Make "ResultActivity" hidden
 
 ## What I Can Investigate More

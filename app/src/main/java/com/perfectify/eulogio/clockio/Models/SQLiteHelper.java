@@ -78,7 +78,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
     /*********************** AppInfo ***********************************************/
     // add an app
     public void addAppInfo(AppInfo appInfo) {
-        Log.d("???:addAppInfo", appInfo.toString());
 
         // get reference for writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -125,7 +124,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         AppInfo appInfo = new AppInfo(cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
         appInfo.setId(Integer.parseInt(cursor.getString(0)));
 
-        Log.d("???:getAppInfo("+id+")", appInfo.toString());
 
         return appInfo;
     }
@@ -155,7 +153,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             AppInfo appInfo = new AppInfo(cursor.getString(1), cursor.getString(2), Integer.parseInt(cursor.getString(3)));
             appInfo.setId(Integer.parseInt(cursor.getString(0)));
 
-            Log.d("???:getAppInfo(" + packageName + ")", appInfo.toString());
 
             return appInfo;
         }
@@ -185,7 +182,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
-        Log.d("getAllAppInfo()", appInfos.toString());
 
         return appInfos;
     }
@@ -227,7 +223,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
         );
 
         db.close();
-        Log.d("deleteAppInfo", appInfo.toString());
     }
 
     // return all app packagenames that are set to monitor
@@ -249,8 +244,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
-        Log.d("getMonitoredApps()", monitoredApps.toString());
-
         return monitoredApps;
     }
 
@@ -258,8 +251,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     // add an app's time
     public void addAppTime(AppTime appTime){
-        //for logging
-        Log.d("addAppTime", appTime.toString());
 
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -302,7 +293,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
         //  build AppTime object
         AppTime appTime = new AppTime(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getLong(2));
-        Log.d("???:getAppTime("+id+")", appTime.toString() + "");
 
         return appTime;
     }
@@ -330,7 +320,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
             //  build AppTime object
             AppTime appTime = new AppTime(Integer.parseInt(cursor.getString(0)), cursor.getString(1), cursor.getLong(2));
-            Log.d("???:getAppTime(" + packageName + ")", appTime.toString() + "");
 
             return appTime;
         }
@@ -358,8 +347,6 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 appTimes.add(appTime);
             } while (cursor.moveToNext());
         }
-
-        Log.d("getAllAppInfo()", appTimes.toString());
 
         return appTimes;
     }
