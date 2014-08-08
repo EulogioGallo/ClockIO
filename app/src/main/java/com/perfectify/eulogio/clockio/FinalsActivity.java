@@ -1,9 +1,11 @@
 package com.perfectify.eulogio.clockio;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
 
 import com.perfectify.eulogio.clockio.Models.AppTime;
@@ -23,15 +25,17 @@ public class FinalsActivity extends Activity {
 
         SQLiteHelper db = new SQLiteHelper(this);
 
+        List<String> packageNames = new ArrayList<String>();
         List<String> appNames = new ArrayList<String>();
         List<Long> appTimes = new ArrayList<Long>();
 
         for(AppTime appTime : db.getAllAppTime()) {
+            packageNames.add(appTime.getPackageName());
             appNames.add(db.getAppInfo(appTime.getPackageName()).getAppName());
             appTimes.add(appTime.getElapsedTime());
         }
 
-        appTimeList adapter = new appTimeList(this, appNames, appTimes);
+        appTimeList adapter = new appTimeList(this, packageNames, appNames, appTimes);
 
         lv = (ListView) findViewById(R.id.appTimeListView);
         lv.setAdapter(adapter);
@@ -41,7 +45,8 @@ public class FinalsActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.finals, menu);
+        // ### Keep this hidden for now
+        // getMenuInflater().inflate(R.menu.finals, menu);
         return true;
     }
 
@@ -55,5 +60,9 @@ public class FinalsActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void exitClockIO(View view) {
+        finish();
     }
 }

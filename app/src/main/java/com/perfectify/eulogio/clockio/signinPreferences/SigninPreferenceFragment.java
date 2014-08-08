@@ -1,15 +1,9 @@
 package com.perfectify.eulogio.clockio.signinPreferences;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.DialogPreference;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceManager;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View;
-import android.widget.EditText;
+
 
 import com.perfectify.eulogio.clockio.R;
 

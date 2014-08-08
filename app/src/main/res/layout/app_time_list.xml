@@ -5,10 +5,16 @@
              xmlns:fontawesometext="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent" android:layout_height="match_parent">
     <TableRow>
+        <ImageView
+            android:id="@+id/timeImg"
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
         <TextView
             android:id="@+id/packageName"
             android:layout_width="wrap_content"
-            android:layout_height="50dp" />
+            android:layout_height="50dp"
+            android:textStyle="bold"
+            android:layout_gravity="left|center_horizontal"/>
 
         <TextView
             android:id="@+id/time"

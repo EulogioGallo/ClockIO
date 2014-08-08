@@ -29,9 +29,7 @@ public class ResultActivity extends Activity {
 
         // Get app to launch from mainActivity intent
         Intent  mainActivityIntent = getIntent();
-        String appMsg = mainActivityIntent.getStringExtra(MainActivity.APP_MESSAGE); //no longer app
-
-        Log.d("???: APP_TO_LAUNCH", appMsg);
+        String appMsg = mainActivityIntent.getStringExtra(MainActivity.FIRST_CALL); //no longer app
 
         // this is null when ResultActivity started from notification
         if (appMsg != null) {
@@ -59,7 +57,6 @@ public class ResultActivity extends Activity {
 
             // send app info to background service
             mServiceIntent = new Intent(this, clockService.class);
-            //mServiceIntent.setData(Uri.parse(appToLaunch));
             startService(mServiceIntent);
 
             // start home screen
@@ -71,7 +68,7 @@ public class ResultActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.result, menu);
+        // getMenuInflater().inflate(R.menu.result, menu);
         return true;
     }
 
@@ -95,5 +92,6 @@ public class ResultActivity extends Activity {
 
         super.onNewIntent(intent);
         this.stopService(mServiceIntent);
+        finish();
     }
 }

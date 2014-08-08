@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -48,7 +47,7 @@ public class MainActivity extends Activity {
     ListView lv;
 
     Context context = this;
-    public final static String APP_MESSAGE = "com.perfectify.eulogio.clockio.APP";
+    public final static String FIRST_CALL = "com.perfectify.eulogio.clockio.APP";
     private ProgressDialog progressDialog;
 
     // create db if not already present
@@ -72,7 +71,10 @@ public class MainActivity extends Activity {
                 synchronized (this) {
                     final PackageManager pm = getPackageManager();
                     //get a list of installed packages.
-                    List<ApplicationInfo> packages = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+                    int flags = PackageManager.GET_META_DATA |
+                                PackageManager.GET_SHARED_LIBRARY_FILES |
+                                PackageManager.GET_UNINSTALLED_PACKAGES;
+                    List<ApplicationInfo> packages = pm.getInstalledApplications(flags);
 
 
                     //cycle through packages for app names
@@ -198,9 +200,11 @@ public class MainActivity extends Activity {
 
             // start service
             Intent resultIntent = new Intent(context, ResultActivity.class);
-            resultIntent.putExtra(APP_MESSAGE, "Tap here to exit");
+            resultIntent.putExtra(FIRST_CALL, "Tap this to exit");
             Toast.makeText(this, "ClockIO is running in background", Toast.LENGTH_SHORT).show();
             startActivity(resultIntent);
+
+            finish();
 
         } else {
 

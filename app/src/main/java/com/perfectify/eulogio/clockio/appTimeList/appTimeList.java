@@ -1,9 +1,12 @@
 package com.perfectify.eulogio.clockio.appTimeList;
 
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
@@ -19,11 +22,13 @@ import java.util.concurrent.TimeUnit;
 public class appTimeList extends ArrayAdapter<String> {
     private final FinalsActivity context;
     private final List<String> packageName;
+    private final List<String> appName;
     private final List<Long> time;
-    public appTimeList(FinalsActivity context, List<String> packageName, List<Long> time) {
+    public appTimeList(FinalsActivity context, List<String> packageName, List<String> appName, List<Long> time) {
         super(context, R.layout.app_time_list, packageName);
         this.context = context;
         this.packageName = packageName;
+        this.appName = appName;
         this.time = time;
     }
 
@@ -34,7 +39,7 @@ public class appTimeList extends ArrayAdapter<String> {
         TextView txtPackageName = (TextView) rowView.findViewById(R.id.packageName);
         TextView txtTime = (TextView) rowView.findViewById(R.id.time);
 
-        txtPackageName.setText(packageName.get(position));
+        txtPackageName.setText(appName.get(position));
 
         // format time
         String timeString = String.format("  %d min, %d sec",
@@ -44,6 +49,24 @@ public class appTimeList extends ArrayAdapter<String> {
         );
 
         txtTime.setText(timeString);
+
+        // find icon for app
+        ImageView imageView = (ImageView) rowView.findViewById(R.id.timeImg);
+        imageView.setImageDrawable(getIcon(position));
+
         return rowView;
+    }
+
+    private Drawable getIcon(int appPos) {
+        PackageManager pm = context.getPackageManager();
+
+        Drawable appIcon;
+        try {
+            appIcon = pm.getApplicationIcon(packageName.get(appPos));
+        } catch (PackageManager.NameNotFoundException nnfe) {
+            appIcon = pm.getDefaultActivityIcon();
+        }
+
+        return appIcon;
     }
 }

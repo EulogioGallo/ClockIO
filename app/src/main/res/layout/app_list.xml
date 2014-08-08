@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:layout_marginLeft="4px"
-            android:layout_marginRight="10px"/>
+            android:layout_marginRight="10px" />
     </TableRow>
 
 </TableLayout>

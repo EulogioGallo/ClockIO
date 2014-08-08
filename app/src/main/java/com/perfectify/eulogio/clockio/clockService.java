@@ -205,6 +205,7 @@ public class clockService  extends IntentService {
                     tempTime = 0;
                     isTouched = false;
                 }
+
             // if we moved to another app that isn't monitored
             // add the time we had to the appropriate app
             } else if (tempTime > 0) {
@@ -241,8 +242,11 @@ public class clockService  extends IntentService {
 
         // When service is destroyed, call final activity
         Intent finalIntent = new Intent(this, FinalsActivity.class);
-        finalIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        finalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        int flags = Intent.FLAG_FROM_BACKGROUND |
+                    Intent.FLAG_ACTIVITY_NEW_TASK;
+
+        finalIntent.addFlags(flags);
         startActivity(finalIntent);
         isDestroyed  = true;
         Log.d("???: SERVICE DESTROYED", isDestroyed + "");

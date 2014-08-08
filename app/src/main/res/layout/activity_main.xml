@@ -20,7 +20,7 @@
         android:dividerHeight="1dp"
         android:paddingLeft="2dp"
         android:layout_centerHorizontal="true"
-        android:layout_above="@+id/view3">
+        android:layout_above="@+id/go">
     </ListView>
 
     <com.beardedhen.androidbootstrap.BootstrapButton
@@ -36,6 +36,6 @@
         bootstrapbutton:bb_type="primary"
         android:onClick="startInBackground"
         android:paddingTop="10dp"
-        android:id="@+id/view3" />
+        android:id="@+id/go" />
 
 </RelativeLayout>
